@@ -1,0 +1,24 @@
+global:
+  resolve_timeout: 5m
+
+  smtp_smarthost: "smtp.gmail.com:587"
+  smtp_from: "AlertManager <your_email@gmail.com>"
+  smtp_auth_username: "your_email@gmail.com"
+  smtp_auth_password: "xxxx xxxx xxxx xxxx"
+  smtp_require_tls: true
+
+route:
+  receiver: "email-notifications"
+  group_wait: 30s
+  group_interval: 30s
+  repeat_interval: 3h
+
+receivers:
+  - name: "email-notifications"
+    email_configs:
+      - to: "receiver_email@domain.com"
+        send_resolved: true
+
+  - name: default-receiver
+    webhook_configs:
+      - url: http://example.com   # placeholder

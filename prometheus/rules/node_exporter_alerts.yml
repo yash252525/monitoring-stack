@@ -1,0 +1,20 @@
+groups:
+  - name: node_exporter_rules
+    rules:
+      - alert: HighCPULoad
+        expr: node_load1 > 2
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU load"
+          description: "Load average 1 minute is above 2"
+
+      - alert: InstanceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.instance }} down"
+          description: "The instance {{ $labels.instance  }} has been unreachable for more than 2 minutes."

@@ -1,0 +1,18 @@
+{
+	"ulid": "01KB9Z324KVXWDR9M0B73YK1R1",
+	"minTime": 1764410592358,
+	"maxTime": 1764417600000,
+	"stats": {
+		"numSamples": 820009,
+		"numFloatSamples": 820009,
+		"numSeries": 1908,
+		"numChunks": 6966
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KB9Z324KVXWDR9M0B73YK1R1"
+		]
+	},
+	"version": 1
+}

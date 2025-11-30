@@ -93,11 +93,8 @@ docker run -d \
   --network monitoring \
   -p 9100:9100 \
   --restart unless-stopped \
-  -v /proc:/host/proc:ro \
-  -v /sys:/host/sys:ro \
-  -v /:/host:ro,rslave \
   quay.io/prometheus/node-exporter:latest \
-  --path.rootfs=/host
+
 ```
 
 Add a scrape job in `prometheus.yml` to collect Node Exporter metrics:

@@ -1,4 +1,4 @@
-Here is the content in raw `.md` format. You can copy the code block below and paste it directly into your `README.md` file.
+
 
 ```markdown
 # 📊 Dockerized Monitoring Stack (Prometheus, Grafana, Alertmanager)

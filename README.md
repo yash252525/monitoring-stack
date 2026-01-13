@@ -1,29 +1,63 @@
-# Monitoring Stack: Prometheus, Grafana, Alertmanager, Node Exporter (Docker)
+Here is the content in raw `.md` format. You can copy the code block below and paste it directly into your `README.md` file.
 
-This project provides a Docker-based monitoring stack using Prometheus for metrics collection, Grafana for visualization, Alertmanager for alerting, and Node Exporter for host-level metrics.
+```markdown
+# 📊 Dockerized Monitoring Stack (Prometheus, Grafana, Alertmanager)
 
-## Prerequisites
+![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=Prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=Grafana&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
 
-- Docker installed on the host
-- Configuration files for Prometheus and Alertmanager under `/opt` on the host:
-  - `/opt/prometheus.yml`
-  - `/opt/alertmanager.yml`
+A modular, containerized observability stack designed to monitor server performance, hardware metrics, and application health. This project demonstrates a standard industry implementation of the **Prometheus ecosystem** using Docker for portability and isolation.
 
-> Adjust the paths in the commands below if your configuration files are stored in a different location.
+---
 
-## 1. Create Docker network
+## 🏗️ Architecture & Data Flow
 
-Create a dedicated Docker network so the containers can communicate by name.
+This stack operates on a **Pull-Based Model** where Prometheus actively scrapes metrics from targets.
 
+1.  **Node Exporter** (Agent) runs on the host, collecting kernel-level metrics (CPU, RAM, Disk I/O) and exposing them at `/metrics`.
+2.  **Prometheus** (Server) periodically connects to Node Exporter, downloads the data, and stores it in its Time-Series Database (TSDB).
+3.  **Grafana** (Visualization) queries Prometheus using **PromQL** to render dashboards and graphs.
+4.  **Alertmanager** (Response) receives alert triggers from Prometheus (e.g., "High CPU Load") and manages notifications (deduplication, grouping, routing).
+
+---
+
+## 🚀 Components
+
+| Service | Port | Description |
+| :--- | :--- | :--- |
+| **Prometheus** | `9090` | The core metric collector and Time-Series Database. |
+| **Grafana** | `3000` | The visualization dashboard (UI). |
+| **Alertmanager** | `9093` | Handles alert routing and notification grouping. |
+| **Node Exporter** | `9100` | Exposes host hardware and OS metrics. |
+
+---
+
+## 🛠️ Prerequisites
+
+* **Docker** installed on the host machine.
+* Basic understanding of YAML configuration files.
+* **Configuration Files**: You must create the following config files on your host before running the containers (recommended path: `/opt/`):
+    * `/opt/prometheus.yml`
+    * `/opt/alertmanager.yml`
+
+---
+
+## ⚡ Quick Start Guide
+
+Follow these steps to spin up the entire stack manually.
+
+### 1. Create a Dedicated Network
+Create a bridge network to allow containers to communicate by name (Service Discovery).
 ```bash
 docker network create monitoring
+
 ```
 
-This needs to be run only once per host.
+### 2. Configure & Run Prometheus
 
-## 2. Run Prometheus container
-
-Start Prometheus and expose it on port `9090`.
+This container mounts the config file and a data volume for persistence.
 
 ```bash
 docker run -d \
@@ -33,15 +67,12 @@ docker run -d \
   -v /opt/prometheus.yml:/etc/prometheus/prometheus.yml \
   -v prometheus-data:/prometheus \
   prom/prometheus:latest
+
 ```
 
-- **Prometheus UI**: http://localhost:9090
+### 3. Run Grafana
 
-Ensure your `prometheus.yml` includes scrape configs for Node Exporter and any additional targets you want to monitor.
-
-## 3. Run Grafana container
-
-Start Grafana and expose it on port `3000`.
+The dashboarding tool. Persistent storage is used for user data and dashboards.
 
 ```bash
 docker run -d \
@@ -50,17 +81,14 @@ docker run -d \
   -p 3000:3000 \
   -v grafana-data:/var/lib/grafana \
   grafana/grafana:latest
+
 ```
 
-- **Grafana UI**: http://localhost:3000
+* **Default Login:** `admin` / `admin`
 
-After logging in (default credentials: `admin` / `admin`), add Prometheus as a data source:
+### 4. Run Alertmanager
 
-- **URL**: `http://prometheus:9090`
-
-## 4. Run Alertmanager container
-
-Start Alertmanager and expose it on port `9093`.
+Handles alerts sent by Prometheus.
 
 ```bash
 docker run -d \
@@ -70,22 +98,12 @@ docker run -d \
   -v /opt/alertmanager.yml:/etc/alertmanager/alertmanager.yml \
   -v alertmanager-data:/alertmanager \
   prom/alertmanager:latest
+
 ```
 
-- **Alertmanager UI**: http://localhost:9093
+### 5. Run Node Exporter
 
-Configure Prometheus to send alerts to Alertmanager by adding this to `prometheus.yml`:
-
-```yaml
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets: ['alertmanager:9093']
-```
-
-## 5. Run Node Exporter container
-
-Run Node Exporter to expose host metrics on port `9100`.
+The agent that exposes system metrics.
 
 ```bash
 docker run -d \
@@ -93,64 +111,23 @@ docker run -d \
   --network monitoring \
   -p 9100:9100 \
   --restart unless-stopped \
-  quay.io/prometheus/node-exporter:latest \
+  quay.io/prometheus/node-exporter:latest
 
 ```
 
-Add a scrape job in `prometheus.yml` to collect Node Exporter metrics:
+*(Note: For deep host monitoring in production, you may need to add `--net="host"` and mount `/proc` and `/sys` volumes)*
 
-```yaml
-scrape_configs:
-  - job_name: 'node'
-    static_configs:
-      - targets: ['node-exporter:9100']
-```
+---
 
-## 6. Accessing the stack
+## ⚙️ Configuration Examples
 
-Once all containers are running, access the components:
+### `prometheus.yml`
 
-| Service | URL | Default Port |
-|---------|-----|--------------|
-| Prometheus | http://localhost:9090 | 9090 |
-| Grafana | http://localhost:3000 | 3000 |
-| Alertmanager | http://localhost:9093 | 9093 |
-| Node Exporter | http://localhost:9100/metrics | 9100 |
-
-## 7. Managing containers
-
-**Stop all containers:**
-
-```bash
-docker stop prometheus grafana alertmanager node-exporter
-```
-
-**Start containers:**
-
-```bash
-docker start prometheus grafana alertmanager node-exporter
-```
-
-**Remove containers:**
-
-```bash
-docker rm prometheus grafana alertmanager node-exporter
-```
-
-**Remove volumes (deletes all data):**
-
-```bash
-docker volume rm prometheus-data grafana-data alertmanager-data
-```
-
-## 8. Configuration examples
-
-### Prometheus configuration (`/opt/prometheus.yml`)
+This configures Prometheus to scrape itself and the Node Exporter.
 
 ```yaml
 global:
   scrape_interval: 15s
-  evaluation_interval: 15s
 
 alerting:
   alertmanagers:
@@ -162,32 +139,61 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'node'
+  - job_name: 'node-exporter'
     static_configs:
       - targets: ['node-exporter:9100']
+
 ```
 
-### Alertmanager configuration (`/opt/alertmanager.yml`)
+### Connecting Grafana to Prometheus
 
-```yaml
-global:
-  resolve_timeout: 5m
+1. Log in to Grafana (`http://localhost:3000`).
+2. Go to **Connections** > **Data Sources** > **Add data source**.
+3. Select **Prometheus**.
+4. **URL:** `http://prometheus:9090` (Use the container name, NOT localhost).
+5. Click **Save & Test**.
 
-route:
-  group_by: ['alertname']
-  group_wait: 10s
-  group_interval: 10s
-  repeat_interval: 1h
-  receiver: 'default'
+---
 
-receivers:
-  - name: 'default'
-    # Configure your notification channels here (email, Slack, etc.)
+## 📦 Managing the Stack
+
+**Stop all services:**
+
+```bash
+docker stop prometheus grafana alertmanager node-exporter
+
 ```
 
-## 9. Notes
+**Remove all containers:**
 
-- Do not commit secrets (passwords, API keys, webhooks) to Git
-- Use specific image tags instead of `latest` for production
-- Secure the UIs with authentication and TLS for remote access
-- Backup your configuration files and volumes regularly
+```bash
+docker rm prometheus grafana alertmanager node-exporter
+
+```
+
+**Clean up volumes (Warning: Deletes all data):**
+
+```bash
+docker volume rm prometheus-data grafana-data alertmanager-data
+
+```
+
+---
+
+## 🔮 Future Improvements
+
+* **Docker Compose:** Migrate individual `docker run` commands to a single `docker-compose.yml` for orchestration.
+* **Security:** Implement a Reverse Proxy (Nginx) with Basic Auth and SSL.
+* **Alerting Rules:** Define complex alert rules (e.g., High Memory Usage > 85%) in a separate rules file.
+
+---
+
+## 👤 Author
+
+**Yash**
+
+* [GitHub Profile](https://www.google.com/search?q=https://github.com/yash252525)
+
+```
+
+```

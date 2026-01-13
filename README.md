@@ -1,6 +1,3 @@
-
-
-```markdown
 # 📊 Dockerized Monitoring Stack (Prometheus, Grafana, Alertmanager)
 
 ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=Prometheus&logoColor=white)
@@ -52,13 +49,10 @@ Follow these steps to spin up the entire stack manually.
 Create a bridge network to allow containers to communicate by name (Service Discovery).
 ```bash
 docker network create monitoring
-
 ```
 
 ### 2. Configure & Run Prometheus
-
 This container mounts the config file and a data volume for persistence.
-
 ```bash
 docker run -d \
   --name prometheus \
@@ -67,13 +61,10 @@ docker run -d \
   -v /opt/prometheus.yml:/etc/prometheus/prometheus.yml \
   -v prometheus-data:/prometheus \
   prom/prometheus:latest
-
 ```
 
 ### 3. Run Grafana
-
 The dashboarding tool. Persistent storage is used for user data and dashboards.
-
 ```bash
 docker run -d \
   --name grafana \
@@ -81,15 +72,11 @@ docker run -d \
   -p 3000:3000 \
   -v grafana-data:/var/lib/grafana \
   grafana/grafana:latest
-
 ```
-
 * **Default Login:** `admin` / `admin`
 
 ### 4. Run Alertmanager
-
 Handles alerts sent by Prometheus.
-
 ```bash
 docker run -d \
   --name alertmanager \
@@ -98,13 +85,10 @@ docker run -d \
   -v /opt/alertmanager.yml:/etc/alertmanager/alertmanager.yml \
   -v alertmanager-data:/alertmanager \
   prom/alertmanager:latest
-
 ```
 
 ### 5. Run Node Exporter
-
 The agent that exposes system metrics.
-
 ```bash
 docker run -d \
   --name node-exporter \
@@ -112,9 +96,7 @@ docker run -d \
   -p 9100:9100 \
   --restart unless-stopped \
   quay.io/prometheus/node-exporter:latest
-
 ```
-
 *(Note: For deep host monitoring in production, you may need to add `--net="host"` and mount `/proc` and `/sys` volumes)*
 
 ---
@@ -122,9 +104,7 @@ docker run -d \
 ## ⚙️ Configuration Examples
 
 ### `prometheus.yml`
-
 This configures Prometheus to scrape itself and the Node Exporter.
-
 ```yaml
 global:
   scrape_interval: 15s
@@ -142,46 +122,37 @@ scrape_configs:
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['node-exporter:9100']
-
 ```
 
 ### Connecting Grafana to Prometheus
-
-1. Log in to Grafana (`http://localhost:3000`).
-2. Go to **Connections** > **Data Sources** > **Add data source**.
-3. Select **Prometheus**.
-4. **URL:** `http://prometheus:9090` (Use the container name, NOT localhost).
-5. Click **Save & Test**.
+1.  Log in to Grafana (`http://localhost:3000`).
+2.  Go to **Connections** > **Data Sources** > **Add data source**.
+3.  Select **Prometheus**.
+4.  **URL:** `http://prometheus:9090` (Use the container name, NOT localhost).
+5.  Click **Save & Test**.
 
 ---
 
 ## 📦 Managing the Stack
 
 **Stop all services:**
-
 ```bash
 docker stop prometheus grafana alertmanager node-exporter
-
 ```
 
 **Remove all containers:**
-
 ```bash
 docker rm prometheus grafana alertmanager node-exporter
-
 ```
 
 **Clean up volumes (Warning: Deletes all data):**
-
 ```bash
 docker volume rm prometheus-data grafana-data alertmanager-data
-
 ```
 
 ---
 
 ## 🔮 Future Improvements
-
 * **Docker Compose:** Migrate individual `docker run` commands to a single `docker-compose.yml` for orchestration.
 * **Security:** Implement a Reverse Proxy (Nginx) with Basic Auth and SSL.
 * **Alerting Rules:** Define complex alert rules (e.g., High Memory Usage > 85%) in a separate rules file.
@@ -189,11 +160,5 @@ docker volume rm prometheus-data grafana-data alertmanager-data
 ---
 
 ## 👤 Author
-
 **Yash**
-
-* [GitHub Profile](https://www.google.com/search?q=https://github.com/yash252525)
-
-```
-
-```
+* [GitHub Profile](https://github.com/yash252525)
